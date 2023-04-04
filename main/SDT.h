@@ -1,5 +1,5 @@
-#ifndef BEENHERE
-#define BEENHERE
+#ifndef _SDT_H__
+#define _SDT_H__
 
 //======================================== Library include files ========================================================
 #include <stdint.h>
@@ -2270,4 +2270,4 @@ int  Xmit_IQ_Cal(); //AFP 09-21-22
 void ZoomFFTPrep();
 void ZoomFFTExe(uint32_t blockSize);
 
-#endif
+#endif // _SDT_H__

@@ -1,7 +1,4 @@
-#ifndef BEENHERE
 #include "SDT.h"
-#endif
-
 
 /*****
   Purpose: Combined input/ output for the purpose of calibrating the receive IQ

@@ -1,7 +1,4 @@
-#ifndef BEENHERE
 #include "SDT.h"
-#endif
-
 
 #define debug_alternate_NR
 #define boundary_blank 14                           //14 // for first trials very large!!!!

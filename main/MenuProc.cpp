@@ -1,7 +1,4 @@
-#ifndef BEENHERE
 #include "SDT.h"
-#endif
-
 
 // ==============  AFP 10-22-22 ==================
 /*****

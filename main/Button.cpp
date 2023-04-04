@@ -1,6 +1,4 @@
-#ifndef BEENHERE
 #include "SDT.h"
-#endif
 
 /*****
   Purpose: Determine which UI button was pressed

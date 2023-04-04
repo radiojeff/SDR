@@ -1,6 +1,4 @@
-#ifndef BEENHERE
 #include "SDT.h"
-#endif
 
 /***** //AFP 10-11-22 all new
   Purpose:  Reset tuning to center

@@ -1,6 +1,5 @@
-#ifndef BEENHERE
 #include "SDT.h"
-#endif
+
 /*
 const char *topMenus[]      = {"CW Options", "Spectrum Set", "AGC",      "NR Set",   "IQ Manual",
                                "EQ Rec Set", "EQ Xmt Set",   "Mic Comp", "Calibrate Freq", "Noise Floor",
