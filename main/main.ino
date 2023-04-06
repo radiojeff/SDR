@@ -1,258 +1,44 @@
-/*********************************************************************************************
+/*
+ *  TEENSY CONVOLUTION SDR
+ * 
+ *  Copyright (C) Frank Dziock DD4WH,
+ *                Jack Purdum W8TEE, 
+ *                Al Peter AC8GY,
+ *                Contributors.
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
 
-  This comment block must appear in the load page (e.g., main() or setup()) in any source code
-  that uses code presented as whole or part of the T41-EP source code.
-
-  (c) Frank Dziock, DD4WH, 2020_05_8
-  "TEENSY CONVOLUTION SDR" substantially modified by Jack Purdum, W8TEE, and Al Peter, AC8GY
-
-  This software is made available under the GNU GPL v3 license agreement. If commercial use of this
-  software is planned, we would appreciate it if the interested parties get written approval
-  from Jack Purdum, W8TEE, and Al Peter, AC8GY.
-
-  Any and all other commercial uses, written or implied, are forbidden without written permission from
-   from Jack Purdum, W8TEE, and Al Peter, AC8GY.
-
- V042 Mar 07, 2023  Jack Purdum (W8TEE) This is expected to be the final version of the software. The version supplied 
-  uses IDE 2.0.4 and uses the CrashReport object in the code. I have commented out these calls in setup().
-    Fixed: Crashreport calls commented out.
-    Fixed: calibrate values persisted to EEPROM
-    Fixed: moved the dxCities[] table to a local variable so there's plenty of stack space
-    Add: symbolic constant SD_CARD_PRESENT to do conditional compiles based on presence/absence of SD card
-Memory Usage on Teensy 4.1:
-  FLASH: code:237540, data:140068, headers:8432   free for files:7740424
-   RAM1: variables:207904, code:233880, padding:28264   free for local variables:54240
-   RAM2: variables:342176  free for malloc/new:182112
-   
-  V041h Mar 04, 2023  Jack Purdum (W8TEE) 
-    Initialized xrState to receive on startup
-    Re-defined several large arrays with DMAMEM attribute
-    FLASH: code:229032, data:114028, headers:9192   free for files:7774212
-      RAM1: variables:209888, code:223576, padding:5800   free for local variables:85024
-      RAM2: variables:342176  free for malloc/new:182112
-
-  V041g Mar 03, 2023  Jack Purdum (W8TEE) 
-    Removed Bearing.cpp until exception fault is fixed.
-    Initialized xrState to receive on startup
-    FLASH: code:229032, data:114028, headers:9192   free for files:7774212
-      RAM1: variables:223584, code:223576, padding:5800   free for local variables:71328
-      RAM2: variables:328512  free for malloc/new:195776
-
-  V041b Feb 25, 2023  Jack Purdum (W8TEE):
-    Fixed: VFOs not set right on power reboot. 
-    FLASH: code:228308, data:140436, headers:9104   free for files:7748616
-      RAM1: variables:250688, code:224648, padding:4728   free for local variables:44224
-      RAM2: variables:340864  free for malloc/new:183424
-
-  V041 Feb 22, 2023  Jack Purdum (W8TEE):
-    Fixed: Made EEPROM code consistent with SD EEPROM data
-    Improved: Calibration routines.         
-    Altered the sequence of main menus to expected frequency of use.
-    FLASH: code:227412, data:140252, headers:9160   free for files:7749640
-      RAM1: variables:250240, code:223752, padding:5624   free for local variables:44672
-      RAM2: variables:328512  free for malloc/new:195776
-    
-  V040a Feb 02, 2023  Jack Purdum (W8TEE):
-    Fixed: used wrong character array for first member of the CopyEEPROMToSD() routine. 
-    Added: to main increment 100,000 and 1,000,000 to allow faster moves in frequency (i.e., Calibrate on WWV)
-    Fixed: Calibration called the wrong function. Now calls the correct function.
-  FLASH: code:227096, data:138388, headers:8272   free for files:7752708
-   RAM1: variables:246592, code:223432, padding:5944   free for local variables:48320
-   RAM2: variables:340864  free for malloc/new:183424
-     
-  V040 Feb 01, 2023  Jack Purdum (W8TEE):
-    Expanded EEPROM code
-    Added code to use SD card for EEPROM back up and to calculate bearing heading.
-    Added code to process SD card, including EEPROM dump
-  FLASH: code:225912, data:137400, headers:8396   free for files:7754756
-     RAM1: variables:245536, code:222600, padding:6776   free for local variables:49376
-   RAM2: variables:340864  free for malloc/new:183424
-
-  V039d Jan 11, 2023  Jack Purdum (W8TEE):
-    Fixed: Requesting switch matrix values when already in place
-    Fixed: VFOb problem of not changing to the correct frequecy
-    Fixed: Sync problem with SD card and EEPROM
-  FLASH: code:226872, data:137576, headers:8284   free for files:7753732
-   RAM1: variables:245632, code:223560, padding:5816   free for local variables:49280
-   RAM2: variables:340864  free for malloc/new:183424
-
-  V039 Jan 11, 2023  Jack Purdum (W8TEE):
-    Activated SD card for EEPROM data and BMP file for bearing mapping. Bearing mapping requires
-    creating a BMP file which is copied onto the SD card. The name of the file appears at line
-    226 in the Button.cpp file and as a symbolic constant at line 48 in the header file.
-  FLASH: code:245832, data:135512, headers:8796   free for files:7736324
-   RAM1: variables:243584, code:242520, padding:19624   free for local variables:18560
-   RAM2: variables:340864  free for malloc/new:183424
-
-  V034a Nov. 24, 2022  Jack Purdum (W8TEE):
-    Fixed the code that generated warnings. Also refactored the code and several math expressions that used constants only.
-   FLASH: code:202851, data:99675, headers:8668   free for files:7815176
-   RAM1: variables:207104, code:199624, padding:29752   free for local variables:87808
-   RAM2: variables:328512  free for malloc/new:195776
-
-  V033_DE  Nov, 11, 2022  Al Peter (AC8GY)
-    Added Direct Frequency input using Switch Matrix Base code courtesy of Harry  GM3RVL
-  V033  Nov, 06, 2022  Al Peter (AC8GY)
-    Revised Receive Cal and Transmit Cal to utilize T41 Excite to provide reference signal - no Sig Gen or Freq Analyzer required.
-    Fixed problem with startup parameter setting of bands and last frequencies
-    Reorganized EEPROM and formatted printout of EEPROM data
-    Added Synchronous AM detection  - SAM
-    Set Demod mode and set Receive filters for Favorite frequencies.
-    Extended favorite frequecies to add WWV and set proper Receive filter
-    Fixed CW mode display of sidetone & audio out
-    Changed High Pass filter around DC for 1x spectrum display
-    Revised Xmit Cal routine - added real time on-screen spectrum display of cal process
-    Added new Mic Compressor with full parameter selection.
-    Added Mic Gain Menu option
-    Fixed : Print center freq correctly in zoom = 1X
-  V031d Oct, 30, 2022  Al Peter (AC8GY)
-    Recalibrated Main Spectrum display
-    Recalibrated Audio Spectrum display
-    Fixed: a couple of zoom anomolies
-    Fixed: AM demod window width issue
-    Added additional Cal parameter for xmit Power calibration
-    Fixed: vol value over-writes AGC display
-    Fixed: favorite frequency sets frequency and freq display
-    Added Auto band selection when new favorite frequency is in a different band
-  V031b Oct, 27, 2022  Al Peter (AC8GY)
-    Added PA power output by band for CW and SSB separately.  Added to EEPROM
-    Added IQ calibration variables by band.  Each band is separately calibrated.
-    Fixed: Filter/demod window tracks Zoom
-    Fixed: Set Spectrum Scale display
-    Changed AGC indicator
-    Added: Fine Tune demod window resets to center at band ends
-    Fixed Zoom Fine tune action
-  V031a Oct, 27, 2022  Al Peter (AC8GY)
-    Fixed: Tuning "jumps" when using Fine Tune
-    Reset CW Decode Detection Level
-    Revised CW Decode Narrow band filter
-    Implimented Power-on reset with button hold per KD0RC
-    Fixed AM demodulation
-    Adjusted Audio spectrum display height
-    Fixed Zoom Display
-    Adjusted NR levels
-    Moved Clock update to Process
-    Refactored several if else to switch case
-    Removed unused AM demod code
-
-  V029 Oct, 19, 2022  Al Peter (AC8GY), and Jack Purdum (W8TEE) .
-    Added: 5 New CW filters and save choice in EEPROM
-    Fixed: VFO jumps
-    Fixed: power output
-    Fixed: Spectrum scale disappeared after band change
-    Fixed: Touch-up on Zoom feature - fixed scale markings
-    Fixed: Notch filter
-    Added: Power output calibration for both CW and SSB
-    Added: Power variables for CW and SSB and calibration variables
-  FLASH: code:188404, data:98128, headers:8372   free for files:7831560
-   RAM1: variables:200864, code:185128, padding:11480   free for local variables:126816
-   RAM2: variables:325920  free for malloc/new:198368
-
-  V027e Oct, 17, 2022  Jack Purdum (W8TEE):
-    Fixed: height of filter plots for USB/AM too high by 3 pixels
-    Fixed: removed all dead variables from the EEPROM code which affect read(), write(), and show().
-    Fixed: only shows red for out of band conditions for both VFOs
-
-  V026f-7 Oct, 10, 2022  Jack Purdum (W8TEE) and Al Peter (AC8GY):
-    Added: If the VFO moves outside of a US band, the active VFO frequency is displayed in RED. The band
-      limits are found in the bands[] structure array defined in this file.
-    Activated: Receiver EQ
-    Activated; Mic compression, but not yet tested
-    Simplified: Refactored the band up-/down code
-    Added: Menu CW option to set sidetone volume
-    Fixed: Activated transmit qualizer
-    Fixed: Reset fine tune indicator to center line when main tuning changed
-    Fixed: AGC attach speed
-    Fixed: Band up/down bugs plus several menu prompts and formatting
-    Fixed: 80M upper limit was wrong.
-    Fixed: Switching between bands now preserves the last frequency of the VFO before the switch so you
-    Added: Last used frequency by band and by VFO saved in EEPROM if an EEPROM --> Save is done before poer off
-    Fixed: Could lock up after a mode push button change
-    Added: Display noise filter currently in use
-    Added: EEPROM option to save up to 10 "favorite frequencies
-    Fixed: spectrum display scale disappeared after band change
-    Added: Sidetone Volume and Transmit Delay variables added to CWOptions choices
-    Fixed: When calibrating the switch matrix, some of the prompts overwrote data on the display
-    Fixed: Spectrum scale disappeared after the mode was changed
-    Added: When changing bands, saves the current frequency before band change. Returning to that band recalls this last frequency
-    Fixed: Changing Noise Filter erased part of Zoom message in Information Window when display updated.
-    Fixed: Changing VFO's did not change the x axis for frequency
-    Fixed: Press Select with no menu selected followed by a menu decrease locked up system
-    Added: Small rectangle below the Seconds field to show the Xmt/Rec state of the T41
-    Removed: Menu options: Display, Audio post processor, Sidetone. They are 0no longer used.
-    Fixed: CW-->Paddle Flip prompt was overwritten
-    Moved "CW Fine Tune" message from Audio plot to bottom of Info Window to minimize refresh jitter
-    Fixed: Some Noise Reduction filter info was not written to EEPROM and display was awkward and didn't erase correctly
-    Changed: Noise floor changed to the number of pixels above the spectrum X axis to plot the noise floor.
-    Fixed: The CalibrateFrequency() is now functional. I'll be writing up how to use it with and without a signal generator.
-    Fixed: Overwrote Zoom field on setting the Noise filter. Same for Compress field when writing Zoom.
-    Fixed: Changing Noise Filter erased part of Zoom message in Information Window when display updated.
-    Fixed: Changing VFO's did not change the x axis for frequency
-    Fixed: Press Select with no menu selected followed by a menu decrease locked up system
-    Added: Small rectangle below the Seconds field to show the Xmt/Rec state of the T41
-    Removed: Menu options: Display, Audio post processor, Sidetone. They are 0no longer used.
-    Fixed: CW-->Paddle Flip prompt was overwritten
-    Moved "CW Fine Tune" message from Audio plot to bottom of Info Window to minimize refresh jitter
-    Fixed: Some Noise Reduction filter info was not written to EEPROM and display was awkward and didn't erase correctly
-    Changed: Noise floor changed to the number of pixels above the spectrum X axis to plot the noise floor.
-    Fixed: The CalibrateFrequency() is now functional. I'll be writing up how to use it with and without a signal generator.
-    Fixed: Overwrote Zoom field on setting the Noise filter. Same for Compress field when writing Zoom.
-  Memory Usage on Teensy 4.1:
-  FLASH: code:188276, data:98016, headers:8612   free for files:7831560
-   RAM1: variables:200832, code:185000, padding:11608   free for local variables:126848
-   RAM2: variables:323872  free for malloc/new:200416
-
-  V015 Aug, 06, 2022  Jack Purdum (W8TEE): Made the following changes (most "runaway" problems caused by moving to ISR's):
-    Fixed: Changed encoders from polling to interrupt-driven
-    Fixed: Spectrum set now saved to EEPROM
-    Fixed: frequency filter overlay (i.e., the "blue box") so it doesn't "jump" when Fine Tune used
-    Fixed: Opaque overlay after band changed
-    Fixed: Kim noise reduction has "runaway" (where the code auto-incremented the value)
-    Fixed: "AGC" removed from Info Window when turned off: WHITE = Slow, ORANGE = Medium, GREEN = FAST, RED = AGC in action
-    Fixed: Part of "T41-EP" in upper-right corner partially erased when doing certain screen updates.
-    Fixed: Text under VFO A partially erased on certain screen updates.
-    Fixed: Switching modes caused filter overlay to disappear.
-    Fixed: Receiver equalization caused "runaway"
-    Fixed: transmit equalization caused "runaway"
-    Fixed: switching to VFO B and tuning messed up VFO A frequency readout.
-    Fixed: Audio post-processing caused "runaway"
-    Fixed: RF Gain caused "runaway"
-    Fixed: Power setting caused "runaway"
-    Fixed: Mic compression caused "runaway"
-    Fixed: Mode switch
-    Fixed: Pushing Select when no menu item selected; issue error message
-    Fixed: EEPROM SetFavoriteFrequency() and GetFavoriteFrequency()
-    Fixed: No longer need to remove spectrum or waterfall displays; removed.
-    Not fixed yet: Unresponsive S Meter
-    Not fixed yet: IQ Manual setting
-    Not fixed yet: Other undiscovered bugs...and there will be some!
-    Removed dead code, unused variables, etc. Also added Split VFO code
-    Removed non-macro Serial.print() statements
-  FLASH: code:182384, data:95848, headers:8484   free for files:7839748
-   RAM1: variables:165280, code:179112, padding:17496   free for local variables:162400
-   RAM2: variables:425824  free for malloc/new:98464
-
-  V010 June, 03, 2022  Jack Purdum (W8TEE): CW sending section still incomplete
-    FLASH: code:193424, data:82860, headers:8384   free for files:7841796
-      RAM1: variables:162528, code:190152, padding:6456   free for local variables:165152
-      RAM2: variables:429920  free for malloc/new:94368
-  V025 9-30-22 Al Peter AC8GY : 1. RFGain is hooked up – set gain from -60dB to +10dB
-      2.  Optimized the CW straight key lags
-      3.  Fixed the Decoder on/off so it is is only on when the front button is pushed to turn it on
-      4.  Set up the filter band display so it works correctly at each Zoom level
-      5.  Re-organized the T41 States for SSB Receive, SSB Transmit, CW Receive, and CW transmit
-      6.  Fixed the interaction between Center tune and Fine tune so hey work properly
-      7.  Fixed up fine Tune to work with the spectrum Zoom
-      8.  Got rid of a bunch of dead code – display spectrum and waterfall that we don’t use.
-      9.  Power Setting calibration in Watts
-     10. IQ for Receive and Xmit and frequency cal all combined into one submenu.
-     11. Exciter IQ calibration Partly done
-     12. Receive EQ connected with menu options
-  V001 12-29-20 Al Peter AC8GY Jack Purdum W8TEE: Initial breakdown of Convoltution Code
-
-*********************************************************************************************/
-
-// setup() and loop() at the bottom of this file
+/*
+ *  This comment block must appear in the load page 
+ *  (e.g., main() or setup()) in any source code that uses 
+ *  code presented as whole or part of the T41-EP source code.
+ *
+ *  (c) Frank Dziock, DD4WH, 2020_05_8
+ *   "TEENSY CONVOLUTION SDR" 
+ *  substantially modified by Jack Purdum, W8TEE, and Al Peter, AC8GY
+ *
+ *  This software is made available under the GNU GPL v3 license agreement.
+ *
+ *  If commercial use of this software is planned, we would appreciate it 
+ *  if the interested parties get written approval from Jack Purdum, W8TEE,
+ *  and Al Peter, AC8GY.
+ *
+ *  Any and all other commercial uses, written or implied, are forbidden 
+ *  without written permission from from Jack Purdum, W8TEE, 
+ *  and Al Peter, AC8GY.
+*/
 
 #ifndef BEENHERE
 #include "SDT.h"

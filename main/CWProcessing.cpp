@@ -1,3 +1,45 @@
+/*
+ *  TEENSY CONVOLUTION SDR
+ * 
+ *  Copyright (C) Frank Dziock DD4WH,
+ *                Jack Purdum W8TEE, 
+ *                Al Peter AC8GY,
+ *                Contributors.
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/*
+ *  This comment block must appear in the load page 
+ *  (e.g., main() or setup()) in any source code that uses 
+ *  code presented as whole or part of the T41-EP source code.
+ *
+ *  (c) Frank Dziock, DD4WH, 2020_05_8
+ *   "TEENSY CONVOLUTION SDR" 
+ *  substantially modified by Jack Purdum, W8TEE, and Al Peter, AC8GY
+ *
+ *  This software is made available under the GNU GPL v3 license agreement.
+ *
+ *  If commercial use of this software is planned, we would appreciate it 
+ *  if the interested parties get written approval from Jack Purdum, W8TEE,
+ *  and Al Peter, AC8GY.
+ *
+ *  Any and all other commercial uses, written or implied, are forbidden 
+ *  without written permission from from Jack Purdum, W8TEE, 
+ *  and Al Peter, AC8GY.
+*/
+
 #include "SDT.h"
 
 //=================  AFP10-18-22 ================
@@ -287,9 +329,16 @@ void MorseCharacterDisplay(char currentLetter)
     decodeBuffer[col] = currentLetter;
     col++;
     decodeBuffer[col] = '\0';                                               // Make is a string
-  } else {
-    memcpy(decodeBuffer, &decodeBuffer[1], MAX_DECODE_CHARS - 1);           // Slide array down 1 character
-    decodeBuffer[col - 1] = currentLetter;                                  // Add to end
+  }
+  else
+  {
+	for(int i = 0 ; i < MAX_DECODE_CHARS - 1; i++)
+	{
+			decodeBuffer[i] = decodeBuffer[i+1];
+	}
+	// stuff the letter
+	decodeBuffer[col - 1] = currentLetter;
+	// maintains a null terminated string.
     decodeBuffer[col] = '\0';                                               // Make is a string
   }
   tft.fillRect(CW_TEXT_START_X, CW_TEXT_START_Y, CW_MESSAGE_WIDTH, CW_MESSAGE_HEIGHT * 2, RA8875_BLACK);

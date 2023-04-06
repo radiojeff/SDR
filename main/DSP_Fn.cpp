@@ -1,3 +1,45 @@
+/*
+ *  TEENSY CONVOLUTION SDR
+ * 
+ *  Copyright (C) Frank Dziock DD4WH,
+ *                Jack Purdum W8TEE, 
+ *                Al Peter AC8GY,
+ *                Contributors.
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/*
+ *  This comment block must appear in the load page 
+ *  (e.g., main() or setup()) in any source code that uses 
+ *  code presented as whole or part of the T41-EP source code.
+ *
+ *  (c) Frank Dziock, DD4WH, 2020_05_8
+ *   "TEENSY CONVOLUTION SDR" 
+ *  substantially modified by Jack Purdum, W8TEE, and Al Peter, AC8GY
+ *
+ *  This software is made available under the GNU GPL v3 license agreement.
+ *
+ *  If commercial use of this software is planned, we would appreciate it 
+ *  if the interested parties get written approval from Jack Purdum, W8TEE,
+ *  and Al Peter, AC8GY.
+ *
+ *  Any and all other commercial uses, written or implied, are forbidden 
+ *  without written permission from from Jack Purdum, W8TEE, 
+ *  and Al Peter, AC8GY.
+*/
+
 #include "SDT.h"
 
 #define debug_alternate_NR
@@ -65,20 +107,22 @@ void NoiseBlanker(float32_t* inputsamples, float32_t* outputsamples)
 *****/
 void AltNoiseBlanking(float* insamp, int Nsam, float* E )
 {
-  int impulse_positions[20];      //we allow a maximum of 5 impulses per frame
+  int impulse_positions[20] = {0};      //we allow a maximum of 5 impulses per frame
   int search_pos    = 0;
   int impulse_count = 0;
   int order         = NB_taps;    //10 // lpc's order
-  static float32_t last_frame_end[80]; //this takes the last samples from the previous frame to do the prediction within the boundaries
+
+  //this takes the last samples from the previous frame to do the prediction within the boundaries
+  static float32_t last_frame_end[80] = { 0.0f };
 
   arm_fir_instance_f32 LPC;
-  float32_t lpcs[order + 1];                      // we reserve one more than "order" because of a leading "1"
-  float32_t reverse_lpcs[order + 1];              //this takes the reversed order lpc coefficients
-  float32_t firStateF32[NB_FFT_SIZE + order];
-  float32_t tempsamp[NB_FFT_SIZE];
-  float32_t sigma2;                               //taking the variance of the inpo
-  float32_t lpc_power;
-  float32_t impulse_threshold;
+  float32_t lpcs[order + 1] = {0.0f};                      // we reserve one more than "order" because of a leading "1"
+  float32_t reverse_lpcs[order + 1] = {0.0f};              //this takes the reversed order lpc coefficients
+  float32_t firStateF32[NB_FFT_SIZE + order] = {0.0f};
+  float32_t tempsamp[NB_FFT_SIZE] = {0.0f};
+  float32_t sigma2 = 0.0f;                               //taking the variance of the inpo
+  float32_t lpc_power = 0.0f;
+  float32_t impulse_threshold = 0.0f;
 
 #ifdef debug_alternate_NR
   static int frame_count = 0; //only used for the distortion insertion - can alter be deleted
@@ -86,16 +130,18 @@ void AltNoiseBlanking(float* insamp, int Nsam, float* E )
 #endif
 
   int nr_setting = 0;
-  float32_t R[11];            // takes the autocorrelation results
-  float32_t k, alfa;
+  float32_t R[11] = {0.0f};            // takes the autocorrelation results
+  float32_t k = 0.0f;
+  float32_t alfa = 0.0f;
 
-  float32_t any[order + 1];   //some internal buffers for the levinson durben algorithm
+  float32_t any[order + 1] = { 0.0f};   //some internal buffers for the levinson durben algorithm
 
-  float32_t Rfw[impulse_length + order]; // takes the forward predicted audio restauration
-  float32_t Rbw[impulse_length + order]; // takes the backward predicted audio restauration
-  float32_t Wfw[impulse_length], Wbw[impulse_length]; // taking linear windows for the combination of fwd and bwd
+  float32_t Rfw[impulse_length + order] = {0.0f}; // takes the forward predicted audio restauration
+  float32_t Rbw[impulse_length + order] = {0.0f}; // takes the backward predicted audio restauration
+  float32_t Wfw[impulse_length] = {0.0f};
+  float32_t Wbw[impulse_length] = {0.0f}; // taking linear windows for the combination of fwd and bwd
 
-  float32_t s;
+  float32_t s = 0.0f;
 
 #ifdef debug_alternate_NR  // generate test frames to test the noise blanker function
   // using the NR-setting (0..55) to select the test frame
@@ -149,9 +195,10 @@ void AltNoiseBlanking(float* insamp, int Nsam, float* E )
       }
   }
   frame_count++;
-  if (frame_count > 20)
+  if (frame_count > 20) 
+  {
     frame_count = 0;
-
+  }
 #endif
   //*****************************end of debug impulse generation
 
@@ -177,23 +224,26 @@ void AltNoiseBlanking(float* insamp, int Nsam, float* E )
   lpcs[0] = 1;   //set lpc 0 to 1
 
   for (int i = 1; i < order + 1; i++)
+  {
     lpcs[i] = 0;                    // fill rest of array with zeros - could be done by memfill
+  }
 
   alfa = R[0];
 
   for (int m = 1; m <= order; m++)
   {
-    s = 0.0;
-    for (int u = 1; u < m; u++)
-      s = s + lpcs[u] * R[m - u];
+    s = 0.0f;
+    for (int i = 1; i < m; i++)
+    {
+      s = s + lpcs[i] * R[m - i];
+    }
 
     k = -(R[m] + s) / alfa;
 
-    for (int v = 1; v < m; v++)
-      any[v] = lpcs[v] + k * lpcs[m - v];
-
-    for (int w = 1; w < m; w++)
-      lpcs[w] = any[w];
+    for (int i = 1; i < m; i++)
+    {
+      lpcs[i] = any[i];
+    }
 
     lpcs[m] = k;
     alfa = alfa * (1 - k * k);
@@ -427,8 +477,8 @@ void AGCPrep()
 void AGC()
 {
 
-  int k;
-  float32_t mult;
+  int k = 0;
+  float32_t mult = 0.0f;
   if (AGCMode == 0)  // AGC OFF
   {
     for (unsigned i = 0; i < FFT_length / 2; i++)
@@ -452,9 +502,13 @@ void AGC()
     ring[2 * in_index + 0] = iFFT_buffer[FFT_length + 2 * i + 0];
     ring[2 * in_index + 1] = iFFT_buffer[FFT_length + 2 * i + 1];
     if (pmode == 0) // MAGNITUDE CALCULATION
+	{
       abs_ring[in_index] = max(fabs(ring[2 * in_index + 0]), fabs(ring[2 * in_index + 1]));
+	}
     else
+	{
       abs_ring[in_index] = sqrtf(ring[2 * in_index + 0] * ring[2 * in_index + 0] + ring[2 * in_index + 1] * ring[2 * in_index + 1]);
+	}
 
     fast_backaverage = fast_backmult * abs_out_sample + onemfast_backmult * fast_backaverage;
     hang_backaverage = hang_backmult * abs_out_sample + onemhang_backmult * hang_backaverage;
@@ -466,32 +520,49 @@ void AGC()
       for (int j = 0; j < attack_buffsize; j++)
       {
         if (++k == (int)ring_buffsize)
+		{
           k = 0;
+		}
         if (abs_ring[k] > ring_max)
+		{
           ring_max = abs_ring[k];
+		}
       }
     }
     if (abs_ring[in_index] > ring_max)
+	{
       ring_max = abs_ring[in_index];
+	}
 
     if (hang_counter > 0)
+	{
       --hang_counter;
+	}
 
     switch (state)
     {
       case 0:
-        if (ring_max >= volts) {
+        if (ring_max >= volts) 
+		{
           volts += (ring_max - volts) * attack_mult;
-        } else {
-          if (volts > pop_ratio * fast_backaverage) {
+        }
+		else 
+		{
+          if (volts > pop_ratio * fast_backaverage)
+		  {
             state = 1;
             volts += (ring_max - volts) * fast_decay_mult;
-          } else {
-            if (hang_enable && (hang_backaverage > hang_level)) {
+          }
+		  else
+		  {
+            if (hang_enable && (hang_backaverage > hang_level))
+		   	{
               state = 2;
               hang_counter = (int)(hangtime * SR[SampleRate].rate / DF);
               decay_type = 1;
-            } else {
+            }
+		   	else
+		   	{
               state = 3;
               volts += (ring_max - volts) * decay_mult;
               decay_type = 0;
